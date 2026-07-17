@@ -1,0 +1,65 @@
+From eb212f82bfd3bc5bc0bf65c7daf839fcc3b1f0c9 Mon Sep 17 00:00:00 2001
+From: Auric <aurichardcastle@gmail.com>
+Date: Fri, 17 Jul 2026 19:09:24 +0800
+Subject: [PATCH 2/3] merge: remap parquet task_index into the merged task
+ table
+
+tasks.jsonl was deduped by whole-dict equality, so datasets that each
+used task_index 0 for different tasks produced colliding rows, and the
+parquet task_index column was copied unchanged. The loader keeps only
+the last colliding task string, so frames of the earlier task were
+silently relabeled. Tasks are now merged by task string with fresh
+unique indices, and each parquet's task_index is remapped accordingly.
+---
+ src/galbot_mcap2lerobot/merge_lerobot_v2_1.py | 20 +++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/src/galbot_mcap2lerobot/merge_lerobot_v2_1.py b/src/galbot_mcap2lerobot/merge_lerobot_v2_1.py
+index 5523db6..3a8b6f1 100644
+--- a/src/galbot_mcap2lerobot/merge_lerobot_v2_1.py
++++ b/src/galbot_mcap2lerobot/merge_lerobot_v2_1.py
+@@ -388,6 +388,8 @@ def merge_datasets(source_folders: list[str], output_folder: str) -> None:
+     all_episodes = []
+     all_episode_stats = []
+     all_tasks = []
++    task_string_to_index = {}  # task string -> merged task_index
++    task_maps = {}  # folder -> {old task_index: merged task_index}
+     episode_mapping = []  # (old_folder, old_index, new_index)
+     current_episode = 0
+     current_frame = 0
+@@ -429,9 +431,20 @@ def merge_datasets(source_folders: list[str], output_folder: str) -> None:
+             new_st["episode_index"] = folder_ep_map.get(old, old)
+             all_episode_stats.append(new_st)
+ 
++        # Merge tasks by task STRING and hand out fresh unique indices.
++        # Deduping whole dicts kept colliding task_index rows (e.g. two
++        # single-task datasets both using 0), which the loader collapses
++        # last-wins, relabeling frames of the earlier task.
++        folder_task_map = {}
+         for task in tasks:
+-            if task not in all_tasks:
+-                all_tasks.append(task)
++            tstr = task.get("task")
++            if tstr not in task_string_to_index:
++                task_string_to_index[tstr] = len(task_string_to_index)
++                all_tasks.append(
++                    {"task_index": task_string_to_index[tstr], "task": tstr}
++                )
++            folder_task_map[task.get("task_index", 0)] = task_string_to_index[tstr]
++        task_maps[folder] = folder_task_map
+ 
+     # --- Copy and reindex parquet files ---
+     for old_folder, old_index, new_index in tqdm(episode_mapping, desc="Copying parquet"):
+@@ -466,6 +479,9 @@ def merge_datasets(source_folders: list[str], output_folder: str) -> None:
+ 
+             df = pd.read_parquet(source_path)
+             df["episode_index"] = new_index
++            if "task_index" in df.columns and old_folder in task_maps:
++                remap = task_maps[old_folder]
++                df["task_index"] = [remap.get(int(v), int(v)) for v in df["task_index"]]
+             df.to_parquet(dest_path, index=False)
+ 
+     # --- Copy videos ---
+-- 
+2.39.5 (Apple Git-154)
+

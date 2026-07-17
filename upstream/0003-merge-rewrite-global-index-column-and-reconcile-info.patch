@@ -1,0 +1,62 @@
+From eada89841f354b0c0ad6f58540f8355ebffb3bb3 Mon Sep 17 00:00:00 2001
+From: Auric <aurichardcastle@gmail.com>
+Date: Fri, 17 Jul 2026 19:09:41 +0800
+Subject: [PATCH 3/3] merge: rewrite global 'index' column and reconcile
+ info.json totals
+
+The global frame 'index' was copied unchanged, so each merged episode
+restarted at 0 instead of continuing 0..N-1. total_tasks, splits and
+total_videos were also carried over stale from the first dataset's
+info.json. All are now recomputed from the merged contents.
+---
+ src/galbot_mcap2lerobot/merge_lerobot_v2_1.py | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/src/galbot_mcap2lerobot/merge_lerobot_v2_1.py b/src/galbot_mcap2lerobot/merge_lerobot_v2_1.py
+index 3a8b6f1..2c64f57 100644
+--- a/src/galbot_mcap2lerobot/merge_lerobot_v2_1.py
++++ b/src/galbot_mcap2lerobot/merge_lerobot_v2_1.py
+@@ -446,6 +446,14 @@ def merge_datasets(source_folders: list[str], output_folder: str) -> None:
+             folder_task_map[task.get("task_index", 0)] = task_string_to_index[tstr]
+         task_maps[folder] = folder_task_map
+ 
++    # Global frame offsets per merged episode, so the 'index' column can
++    # be rewritten to run 0..N-1 across the whole merged dataset.
++    frame_offsets = {}
++    running = 0
++    for ep in all_episodes:
++        frame_offsets[ep["episode_index"]] = running
++        running += ep.get("length", 0)
++
+     # --- Copy and reindex parquet files ---
+     for old_folder, old_index, new_index in tqdm(episode_mapping, desc="Copying parquet"):
+         old_chunk = old_index // info["chunks_size"]
+@@ -482,6 +490,9 @@ def merge_datasets(source_folders: list[str], output_folder: str) -> None:
+             if "task_index" in df.columns and old_folder in task_maps:
+                 remap = task_maps[old_folder]
+                 df["task_index"] = [remap.get(int(v), int(v)) for v in df["task_index"]]
++            if "index" in df.columns and new_index in frame_offsets:
++                start = frame_offsets[new_index]
++                df["index"] = range(start, start + len(df))
+             df.to_parquet(dest_path, index=False)
+ 
+     # --- Copy videos ---
+@@ -501,6 +512,15 @@ def merge_datasets(source_folders: list[str], output_folder: str) -> None:
+     # Update info.json
+     info["total_episodes"] = current_episode
+     info["total_frames"] = current_frame
++    info["total_tasks"] = len(all_tasks)
++    info["splits"] = {"train": f"0:{current_episode}"}
++    video_keys = [
++        k
++        for k, v in info.get("features", {}).items()
++        if isinstance(v, dict) and v.get("dtype") == "video"
++    ]
++    if video_keys:
++        info["total_videos"] = len(video_keys) * current_episode
+     with open(os.path.join(output_folder, "meta", "info.json"), "w") as f:
+         json.dump(info, f, indent=2)
+ 
+-- 
+2.39.5 (Apple Git-154)
+

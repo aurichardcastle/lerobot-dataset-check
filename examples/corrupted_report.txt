@@ -1,0 +1,33 @@
+======================================================================
+ lerobot-dataset-check
+  dataset: merged_twotask  (two single-episode conversions merged)
+======================================================================
+
+[ Episode stats <-> episodes ]
+  [FAIL] episodes_stats.jsonl has colliding episode_index [0] (indices found: [0, 0], episodes are: [0, 1]). The loader keys stats by this index, so colliding entries silently overwrite and normalization stats come from a subset of episodes.
+  [FAIL] episodes with no stats entry: [1]
+
+[ Task labels ]
+  [FAIL] tasks.jsonl has colliding task_index [0] across tasks ['pick up the red cube', 'open the drawer']. The loader keeps only the last one, so frames of the earlier task(s) get silently relabeled at training time.
+  [PASS] all parquet task_index values resolve ([0])
+
+[ Parquet <-> metadata layout ]
+  [PASS] 2 episode parquet(s) match filename + declared length
+
+[ info.json totals ]
+  [PASS] total_episodes = 2 matches episodes.jsonl entries
+  [PASS] total_frames = 178 matches sum of episode lengths
+  [FAIL] total_tasks = 1 but tasks.jsonl has 2 line(s) (2 unique task string(s))
+  [WARN] splits.train = '0:1' but dataset has 2 episodes (stale split?)
+  [WARN] total_videos = 4 but 8 video file(s) on disk
+
+[ Global frame index ]
+  [FAIL] 'index' is not contiguous: at global position 88 found 0, expected 88 (a merge that copies parquet without rewriting 'index' causes this)
+
+[ Timestamps ]
+  [PASS] all 2 episode(s) monotonic and within 0.10 ms of 1/fps
+
+======================================================================
+ SUMMARY: 5 PASS, 2 WARN, 5 FAIL, 0 INFO
+ RESULT: FAIL  (at least one FAIL finding)
+======================================================================
