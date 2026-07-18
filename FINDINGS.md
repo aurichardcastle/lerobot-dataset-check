@@ -91,7 +91,7 @@ Post-fix semantic spot check on the merged output: episode `0` → `task_index 0
 
 ## 4. `lerobot-dataset-check`
 
-A standalone read-only validator (separate repo, MIT, author Auric, [github link]), published as an upstream ecosystem contribution rather than a private artifact. Six checks:
+A standalone read-only validator (separate repo, MIT, author Auric, https://github.com/aurichardcastle/lerobot-dataset-check), published as an upstream ecosystem contribution rather than a private artifact. Six checks:
 
 1. `episodes_stats` ↔ episodes bijection (every episode has exactly one stats record and vice versa).
 2. `task_index` uniqueness and resolvability (no colliding keys; every parquet `task_index` resolves).
@@ -102,7 +102,7 @@ A standalone read-only validator (separate repo, MIT, author Auric, [github link
 
 **Why it takes no dependency on `lerobot` itself:** it reads `meta/*.jsonl` and the parquet files directly. The whole failure mode in §1 exists *because* LeRobot's loader collapses colliding keys into dicts and thereby hides the inconsistency — a checker that went through the same loader would inherit the same blind spot. Reading the raw sidecars is precisely what lets it catch what the loader swallows. 7/7 of its own unit tests pass.
 
-**Prior art, stated plainly:** Trajlens (Apache-2.0, [github link]) is a broader, pre-existing LeRobot linter that includes auto-fixers. It is linked in the README. This tool is positioned as narrow and complementary — it makes no novelty claim over Trajlens.
+**Prior art, stated plainly:** Trajlens (Apache-2.0, https://github.com/Kunal-Somani/trajlens) is a broader, pre-existing LeRobot linter that includes auto-fixers. It is linked in the README. This tool is positioned as narrow and complementary — it makes no novelty claim over Trajlens.
 
 ---
 

@@ -22,7 +22,7 @@ Verified by applying all three to a scratch copy and re-running their actual mer
 
 ## `lerobot-dataset-check` — upstream ecosystem contribution
 
-Standalone tool (MIT, [github link]), 6 read-only checks: stats↔episodes bijection, task_index uniqueness/resolution, parquet↔metadata layout, info.json totals, global-index contiguity, timestamps. Reads `meta/*.jsonl` + parquet directly with no dependency on lerobot — which is *why* it catches what the loader silently swallows. 7/7 unit tests pass. Prior art acknowledged in the README: Trajlens (Apache-2.0, [github link]) is a broader existing linter with auto-fixers; this is positioned as narrow and complementary, no novelty claim.
+Standalone tool (MIT, https://github.com/aurichardcastle/lerobot-dataset-check), 6 read-only checks: stats↔episodes bijection, task_index uniqueness/resolution, parquet↔metadata layout, info.json totals, global-index contiguity, timestamps. Reads `meta/*.jsonl` + parquet directly with no dependency on lerobot — which is *why* it catches what the loader silently swallows. 7/7 unit tests pass. Prior art acknowledged in the README: Trajlens (Apache-2.0, https://github.com/Kunal-Somani/trajlens) is a broader existing linter with auto-fixers; this is positioned as narrow and complementary, no novelty claim.
 
 *Public-dataset scan, for completeness:* 19 public Galbot-G1 LeRobot datasets scanned for the fingerprint — 0 flagged; the 6 fully-readable ones are clean but all single-task, so structurally uninformative about a multi-file merge; 13 are access-gated (HTTP 401), access requested and pending. No corrupted public dataset found; the highest-risk artifacts remain unverified.
 
