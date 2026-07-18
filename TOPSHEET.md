@@ -10,7 +10,7 @@
 python upstream/repro_stats_collision.py
 ```
 
-Fabricates two 1-episode datasets, runs **their** merge, prints the collision. Against the pristine converter: `episodes_stats indices: [0, 0]`, task dict collapses to `{0: 'open the drawer'}`, exit 1. Against the patched converter: `[0, 1]`, `{0: 'pick up the red cube', 1: 'open the drawer'}`, exit 0.
+Fabricates two 1-episode datasets, runs **their** merge, prints the collision. Against the pristine converter: `episodes_stats indices: [0, 0]`, task dict collapses to `{0: 'open the drawer'}`, exit 1. Against the patched converter: `[0, 1]`, `{0: 'pick up the red cube', 1: 'open the drawer'}`, exit 0. Captured output of both runs: `upstream/repro_output.txt` (in case you'd rather read than run).
 
 ## Patches (`upstream/`, git-format)
 
