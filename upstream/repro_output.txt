@@ -1,0 +1,27 @@
+# Captured output of upstream/repro_stats_collision.py
+# Point PYTHONPATH at your own copy of galbot-mcap2lerobot (commit 904d251).
+# Galbot engineers already have the converter internally; the public repo being 404 only affects external readers.
+
+## Against the released converter (commit 904d251) — collision present, exit 1:
+```
+Merge complete: 2 episodes, 6 frames
+
+episodes_stats indices: [0, 0]    expected: [0, 1]
+tasks.jsonl rows:       [{'task_index': 0, 'task': 'pick up the red cube'}, {'task_index': 0, 'task': 'open the drawer'}]
+loader's task dict:     {0: 'open the drawer'}    (dict keyed by task_index -> last wins)
+
+COLLISION: stats and/or task indices collide; the loader will silently
+keep one entry per index. Normalization stats come from a subset of
+episodes, and frames of the earlier task get the later task's label.
+```
+
+## Against the same converter with patches 0001-0003 applied — clean, exit 0:
+```
+Merge complete: 2 episodes, 6 frames
+
+episodes_stats indices: [0, 1]    expected: [0, 1]
+tasks.jsonl rows:       [{'task_index': 0, 'task': 'pick up the red cube'}, {'task_index': 1, 'task': 'open the drawer'}]
+loader's task dict:     {0: 'pick up the red cube', 1: 'open the drawer'}    (dict keyed by task_index -> last wins)
+
+OK: no collision — merge output is consistent.
+```
