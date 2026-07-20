@@ -35,7 +35,10 @@ def make_source(root, task):
                 "splits": {"train": "0:1"},
                 "data_path": "data/chunk-{episode_chunk:03d}/episode_{episode_index:06d}.parquet",
                 "video_path": "videos/chunk-{episode_chunk:03d}/{video_key}/episode_{episode_index:06d}.mp4",
-                "features": {},
+                "features": {
+                    "observation.state": {"dtype": "float32", "shape": [2], "names": ["j1", "j2"]},
+                    "action": {"dtype": "float32", "shape": [2], "names": ["j1", "j2"]},
+                },
             },
             f,
         )
